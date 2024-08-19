@@ -31,6 +31,7 @@ type Config struct {
 
 func run() error {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	cfg := getConfig()
 
 	db, err := sqlite.Dial(cfg.DSN)
