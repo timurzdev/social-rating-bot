@@ -9,6 +9,10 @@ import (
 	"github.com/timurzdev/social-rating-bot/internal/repository/model"
 )
 
+const (
+	ratingTable = "ratings"
+)
+
 type RatingRepository struct {
 	db *sqlite.DB
 }
@@ -24,7 +28,7 @@ func (r *RatingRepository) insert(ctx context.Context, tx *sqlx.Tx, rating *mode
 		"rating":  rating.Rating,
 		"level":   rating.Level,
 	}
-	query, args, _ := sq.Insert("ratings").
+	query, args, _ := sq.Insert(ratingTable).
 		SetMap(clause).
 		ToSql()
 
@@ -34,7 +38,8 @@ func (r *RatingRepository) insert(ctx context.Context, tx *sqlx.Tx, rating *mode
 }
 
 func (r *RatingRepository) Create(ctx context.Context, rating *model.Rating) error {
-	return sqlite.Transaction(context.Background(), func(tx *sqlx.Tx) error {
-		return r.insert(ctx, tx, rating)
-	}, r.db)
+	return sqlite.Transaction(ctx,
+		func(tx *sqlx.Tx) error {
+			return r.insert(ctx, tx, rating)
+		}, r.db)
 }
