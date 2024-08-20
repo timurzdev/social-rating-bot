@@ -26,16 +26,7 @@ const (
 	migrationsPath = "migrations"
 )
 
-type Rofl struct {
-	rofl int64
-}
-
-func (r Rofl) Recipient() string {
-	return fmt.Sprintf("%d", r.rofl)
-}
-
 func run() error {
-	rofl := Rofl{}
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	cfg := config.Config{}
@@ -43,7 +34,7 @@ func run() error {
 		return fmt.Errorf("error parsing config: %w", err)
 	}
 
-	db, err := postgres.Dial(cfg.DSN()) // SDELAT POSTGRES
+	db, err := postgres.Dial(cfg.DSN())
 	if err != nil {
 		return fmt.Errorf("error starting postgres: %w", err)
 	}
@@ -67,19 +58,9 @@ func run() error {
 
 	b.Handle("/hello", func(c tele.Context) error {
 		senderName := c.Chat().FirstName
+		logger.Info("invoked /hello")
 		msg := fmt.Sprintf("Hello, %s", senderName)
 		return c.Send(msg)
-	})
-
-	b.Handle("/timurzhon", func(c tele.Context) error {
-		userID := c.Sender().ID
-		rofl.rofl = userID
-		msg := fmt.Sprintf("Your userID: %d", userID)
-		return c.Send(msg)
-	})
-
-	b.Handle("/roflan", func(c tele.Context) error {
-		return c.ForwardTo(rofl, "zdarova")
 	})
 
 	stopped := make(chan struct{})
@@ -125,7 +106,8 @@ func migrateDB(dsn, path string) error {
 
 	err = m.Up()
 	if err != nil || errors.Is(err, migrate.ErrNoChange) {
-		return err
+		//return errors.New("no changes in migrations")
+		fmt.Println("no changes in migrations")
 	}
 	return nil
 }

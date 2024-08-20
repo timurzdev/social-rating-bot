@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -14,7 +13,6 @@ type DB struct {
 }
 
 func Dial(dsn string) (*DB, error) {
-	fmt.Println(dsn)
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		return nil, errors.New("error connecting to db")

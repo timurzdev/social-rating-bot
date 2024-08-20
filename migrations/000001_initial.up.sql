@@ -18,6 +18,6 @@ CREATE TABLE IF NOT EXISTS ratings (
 CREATE TABLE IF NOT EXISTS events (
     "message_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
-    "created_at" TEXT NOT NULL,
+    "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "is_deleted" BOOLEAN NOT NULL DEFAULT FALSE
 );

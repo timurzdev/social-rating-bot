@@ -41,5 +41,7 @@ func (r *RatingRepository) Create(ctx context.Context, rating *model.Rating) err
 	return postgres.Transaction(ctx,
 		func(tx *sqlx.Tx) error {
 			return r.insert(ctx, tx, rating)
-		}, r.db)
+		},
+		r.db,
+	)
 }
