@@ -3,6 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/caarlos0/env/v11"
+	"github.com/timurzdev/social-rating-bot/internal/config"
+	"github.com/timurzdev/social-rating-bot/internal/infrastructure/postgres"
 	"log"
 	"log/slog"
 	"os"
@@ -11,9 +14,9 @@ import (
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/timurzdev/social-rating-bot/internal/infrastructure/sqlite"
+	_ "github.com/lib/pq"
 	"github.com/timurzdev/social-rating-bot/internal/repository/repos"
 	tele "gopkg.in/telebot.v3"
 )
@@ -23,23 +26,29 @@ const (
 	migrationsPath = "migrations"
 )
 
-type Config struct {
-	Token          string
-	DSN            string
-	MigrationsPath string
+type Rofl struct {
+	rofl int64
+}
+
+func (r Rofl) Recipient() string {
+	return fmt.Sprintf("%d", r.rofl)
 }
 
 func run() error {
+	rofl := Rofl{}
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	cfg := getConfig()
+	cfg := config.Config{}
+	if err := env.Parse(&cfg); err != nil {
+		return fmt.Errorf("error parsing config: %w", err)
+	}
 
-	db, err := sqlite.Dial(cfg.DSN)
+	db, err := postgres.Dial(cfg.DSN()) // SDELAT POSTGRES
 	if err != nil {
 		return fmt.Errorf("error starting postgres: %w", err)
 	}
 
-	err = migrateDB(cfg.DSN, cfg.MigrationsPath)
+	err = migrateDB(cfg.DSN(), cfg.MigrationsPath)
 	if err != nil {
 		return fmt.Errorf("error during migrations: %w", err)
 	}
@@ -60,6 +69,17 @@ func run() error {
 		senderName := c.Chat().FirstName
 		msg := fmt.Sprintf("Hello, %s", senderName)
 		return c.Send(msg)
+	})
+
+	b.Handle("/timurzhon", func(c tele.Context) error {
+		userID := c.Sender().ID
+		rofl.rofl = userID
+		msg := fmt.Sprintf("Your userID: %d", userID)
+		return c.Send(msg)
+	})
+
+	b.Handle("/roflan", func(c tele.Context) error {
+		return c.ForwardTo(rofl, "zdarova")
 	})
 
 	stopped := make(chan struct{})
@@ -88,26 +108,8 @@ func main() {
 	os.Exit(0)
 }
 
-func getConfig() Config {
-	cfg := Config{}
-	TOKEN, exists := os.LookupEnv("TOKEN")
-	if exists {
-		cfg.Token = TOKEN
-	}
-
-	DSN, exists := os.LookupEnv("DSN")
-	if exists {
-		cfg.DSN = DSN
-	}
-
-	migrationsPath, exists := os.LookupEnv("MIGRATIONS_PATH")
-	if exists {
-		cfg.MigrationsPath = migrationsPath
-	}
-	return cfg
-}
-
 func migrateDB(dsn, path string) error {
+	log.Println(path, dsn)
 	if path == "" {
 		return errors.New("failed migration: empty path")
 	}

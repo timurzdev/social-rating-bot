@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS events (
     "message_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
     "created_at" TEXT NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT FALSE,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT FALSE
 );

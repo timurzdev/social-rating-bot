@@ -1,11 +1,12 @@
-package sqlite
+package postgres
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
 type DB struct {
@@ -13,8 +14,8 @@ type DB struct {
 }
 
 func Dial(dsn string) (*DB, error) {
-	// dsn example: file:test.db?cache=shared&mode=memory
-	db, err := sqlx.Connect("sqlite", dsn)
+	fmt.Println(dsn)
+	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {
 		return nil, errors.New("error connecting to db")
 	}
